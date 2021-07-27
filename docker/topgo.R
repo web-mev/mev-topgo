@@ -2,7 +2,6 @@ library(org.Mm.eg.db)
 library(org.Hs.eg.db)
 library(topGO)
 library(genefilter)
-library(geneplotter)
 
 # args from command line:
 args<-commandArgs(TRUE)
@@ -67,7 +66,7 @@ if (! opt$ontology %in% c("MF", "BP", "CC")) {
     quit(status=1)
 }
 
-
+# ingest the DGE output as a data frame
 res <- read.table(
     file = opt$input_file,
     sep="\t",
