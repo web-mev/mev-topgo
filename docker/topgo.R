@@ -1,7 +1,8 @@
-library(org.Mm.eg.db)
-library(org.Hs.eg.db)
-library(topGO)
-library(genefilter)
+suppressMessages(suppressWarnings(library(org.Mm.eg.db)))
+suppressMessages(suppressWarnings(library(org.Hs.eg.db)))
+suppressMessages(suppressWarnings(library(topGO)))
+suppressMessages(suppressWarnings(library(genefilter)))
+suppressMessages(suppressWarnings(library(optparse)))
 
 # args from command line:
 args<-commandArgs(TRUE)
@@ -18,7 +19,7 @@ option_list <- list(
     make_option(
         c('-n', '--ontology'),
         help="The ontology class to analyze: MF, BP, or CC"
-    )
+    ),
     make_option(
         c('-p','--pvalue'),
         default = 0.05,
@@ -33,7 +34,7 @@ option_list <- list(
         c('-t', '--total_nodes'),
         default = 500,
         help='The total number of nodes to display in results'
-    )
+    ),
     make_option(
         c('-g', '--organism'),
         help='The organism database to use'
