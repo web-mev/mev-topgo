@@ -1,0 +1,72 @@
+{
+    "name": "topGO", 
+    "description": "Executes a TopGO enrichment analysis originating from a differential expression analysis. See the input descriptions for formatting instructions if you are supplying your own file. Those created within WebMeV are already in the correct format.", 
+    "inputs": {
+        "feature_table": {
+            "description": "A table of diffential expression results. Must have \"overall_mean\" and \"padj\" columns for the process to understand how to read the table. We need \"overall_mean\" column to generate an empircally matched background distribution and the \"padj\" column to classify a gene as differentially expressed or not.", 
+            "name": "Differential expression results:", 
+            "required": true, 
+            "spec": {
+                "attribute_type": "DataResource", 
+                "resource_types": ["FT"], 
+                "many": false
+            }
+        }, 
+        "organism": {
+            "description": "The organism/genome for your data. If you do not see your organism, please request it!", 
+            "name": "Genome/organism:", 
+            "required": true, 
+            "spec": {
+                "attribute_type": "OptionString",
+                "options": ["Human", "Mouse"]
+            }
+        },
+        "ontology": {
+            "description": "The ontology class to analyze. This analysis can be re-run multiples times to get results for each.", 
+            "name": "Ontology choice:", 
+            "required": true, 
+            "spec": {
+                "attribute_type": "OptionString",
+                "options": ["MF (Molecular Function)", "CC (Cellular Component)", "BP (Biological Process)"]            
+            }
+        },
+        "pvalue_threshold": {
+            "description": "The significance value (p-value, adjusted p-value, FDR) threshold which determines whether a gene is considered differentially expressed or not.", 
+            "name": "P-value threshold:", 
+            "required": false, 
+            "spec": {
+                "attribute_type": "PositiveFloat",
+                "default": 0.05
+            }
+        },
+        "min_size": {
+            "description": "The minimum number of genes required to be assigned to a GO term. GO terms associated with fewer genes will be removed from analysis.", 
+            "name": "Minimum GO term size:", 
+            "required": false, 
+            "spec": {
+                "attribute_type": "PositiveInteger",
+                "default": 10
+            }
+        },
+        "max_result_size": {
+            "description": "The maximum number of GO terms to report in the analysis output.", 
+            "name": "Number of GO term results:", 
+            "required": false, 
+            "spec": {
+                "attribute_type": "PositiveInteger",
+                "default": 500
+            }
+        }
+    }, 
+    "outputs": {
+        "go_results": {
+            "spec": {
+                "attribute_type": "DataResource", 
+                "resource_type": "FT",
+                "many": false
+            }
+        }
+    }, 
+    "mode": "local_docker",
+    "workspace_operation": true
+}
