@@ -52,6 +52,7 @@ if (is.null(opt$output_file_prefix)) {
     message('Need to provide the prefix for the output file with the -o arg.')
     quit(status=1)
 }
+# Expects the organism to be: org.Hs.eg.db OR org.Mm.eg.db
 if (is.null(opt$organism)) {
     message('Need to provide the organism with the -g/--organism arg.')
     quit(status=1)
