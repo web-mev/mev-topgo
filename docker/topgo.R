@@ -100,10 +100,6 @@ backG <- unique(backG)
 # Convert list of genes to expressions
 backG <- rownames(overallBasemean)[backG]
 
-# Choice of ontologies
-# This could be an input
-onts = c( "MF", "BP", "CC" )
-
 geneIDs = rownames(overallBasemean)
 # Set universe for hypergeometric test as expression matched background
 # and significant genes
