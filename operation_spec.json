@@ -21,6 +21,15 @@
                 "options": ["Human", "Mouse"]
             }
         },
+        "gene_identifier": {
+            "description": "The gene identifier used in the input table of differential expression results.", 
+            "name": "Gene identifier:", 
+            "required": true, 
+            "spec": {
+                "attribute_type": "OptionString",
+                "options": ["Symbol", "Ensembl", "Entrez"]
+            }
+        },
         "ontology": {
             "description": "The ontology class to analyze. This analysis can be re-run multiples times to get results for each.", 
             "name": "Ontology choice:", 

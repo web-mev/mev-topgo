@@ -19,19 +19,14 @@ ENV PATH="/opt/software/miniconda/bin:${PATH}"
 ADD spec_file.yaml /opt/software/
 RUN conda env create --name topgo_env --file=/opt/software/spec_file.yaml
 
-# Add the sctk dimensional reduction script
+# Add the topGO scripts
 ADD topgo.R /opt/software
 ADD create_gene_mappings.R /opt/software
 ADD create_go_mapping_files.R /opt/software
+ADD run.sh /opt/software
+RUN chmod +x /opt/software/run.sh
 
 # add to the PATH. Otherwise, conda can swallow return codes
 ENV PATH="/opt/software/miniconda/envs/topgo_env/bin:${PATH}"
-
-# Create the gene mapping and GO term files:
-mkdir /data
-Rscript /opt/software/create_gene_mappings.R human /data/human_gene_mappings.tsv
-Rscript /opt/software/create_gene_mappings.R mouse /data/mouse_gene_mappings.tsv
-Rscript /opt/software/create_go_mapping_files.R human /data/human_go_mappings.tsv
-Rscript /opt/software/create_go_mapping_files.R mouse /data/mouse_go_mappings.tsv
 
 ENTRYPOINT ["/bin/bash"]

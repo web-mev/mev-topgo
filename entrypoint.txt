@@ -1,0 +1,1 @@
+/opt/software/run.sh {{feature_table}} {{organism}} {{gene_identifier}} {{ontology}} {{pvalue_threshold}} {{min_size}} {{max_result_size}}

@@ -13,10 +13,6 @@ option_list <- list(
         help='Path to the count matrix input.'
     ),
     make_option(
-        c('-o','--output_file_prefix'),
-        help='The prefix for the output file'
-    ),
-    make_option(
         c('-n', '--ontology'),
         help="The ontology class to analyze: MF, BP, or CC"
     ),
@@ -36,12 +32,8 @@ option_list <- list(
         help='The total number of nodes to display in results'
     ),
     make_option(
-        c('-g', '--gene_mapping'),
-        help='A file giving the various gene symbols and mapping between them'
-    ),
-    make_option(
-        c('-j', '--go_mapping'),
-        help='A file giving the GO terms mapped to the associated genes.'
+        c('-g', '--organism'),
+        help='The organism database to use.'
     ),
     make_option(
         c('-s', '--identifier_type'),
@@ -57,29 +49,19 @@ if (is.null(opt$input_file)){
     quit(status=1)
 }
 
-if (is.null(opt$output_file_prefix)) {
-    message('Need to provide the prefix for the output file with the -o arg.')
-    quit(status=1)
-}
-
 if (is.null(opt$input_file)){
     message('Need to provide a ontology class with the -n/--ontology arg.')
-    quit(status=1)
-}
-
-if (is.null(opt$gene_mapping)){
-    message('Need to provide a file with gene symbol mapping via the -g/--gene_mapping arg.')
-    quit(status=1)
-}
-
-if (is.null(opt$go_mapping)){
-    message('Need to provide a file mapping GO terms to genes via the -j/--go_mapping arg.')
     quit(status=1)
 }
 
 # Check if the ontology is a valid choice of BP, MF, or CC
 if (! opt$ontology %in% c("MF", "BP", "CC")) {
     message('Need to provide a valid ontology of: MF, BP, or CC.')
+    quit(status=1)
+}
+
+if (! tolower(opt$identifier_type) %in% c("symbol", "ensembl", "entrez")) {
+    message('For the gene identifier option, need to select one of: symbol, ensembl, or entrez.')
     quit(status=1)
 }
 
@@ -107,12 +89,9 @@ if(length(sigGenes) == 0){
     quit(status=0)
 }
 
-print(head(sigGenes))
 
 # Get the mean values for all genes
 overallBasemean <- as.matrix(res[, "overall_mean", drop = F])
-print(head(overallBasemean))
-print(dim(overallBasemean))
 
 # Get the indices of the significant genes in the mean matrix
 sig_idx <- match(sigGenes, rownames(overallBasemean))
@@ -124,67 +103,12 @@ for (i in sig_idx){
     backG <- c(backG, ind)
 }
 backG <- unique(backG)
-print(head(backG))
+
 # Convert list of genes to expressions
 backG <- rownames(overallBasemean)[backG]
-print(head(backG))
-print('????')
 
 # an array of all gene IDs given by the original identifier
 geneIDs = rownames(overallBasemean)
-
-# Now we map to Ensembl IDs
-GENE_ID_TYPE <- tolower(opt$identifier_type)
-if (GENE_ID_TYPE != 'ensembl') {
-    if(GENE_ID_TYPE == 'symbol'){
-        # note that when we map back at the end, we use the symbol column
-        # since the many:1 mapping of alias to entrez causes problems.    
-        chosen_col = 'ALIAS'
-        remap_col = 'SYMBOL'
-    } else if(GENE_ID_TYPE == 'entrez'){
-        chosen_col = 'ENTREZID'
-        remap_col = 'ENTREZID'
-    } else {
-        message('Could not understand which gene identifier to map from.')
-        quit(status=1)
-    }
-
-    # merge to keep only those where we have a mapping:
-    gene_info_df = read.table(opt$gene_mapping)
-    gene_info_df = unique(gene_info_df[gene_info_df[,chosen_col] %in% geneIDs, c(chosen_col,'ENSEMBL', remap_col)])
-
-    # If no remaining rows, error out
-    if(dim(gene_info_df)[1] == 0){
-        message('After mapping the gene identifiers, there were no remaining rows. Was the choice of gene identifier correct?')
-        quit(status=1)
-    }
-    # Note that a single gene symbol can map to multiple Ensembl IDs. Such as this:
-    #         ALIAS         ENSEMBL
-    # 1552    APLP2 ENSG00000084234
-    # 1950    ASAH1 ENSG00000104763
-    # 4357     CD28 ENSG00000178562
-    # 7093     CTSS ENSG00000163131
-    # 8853     TYMP ENSG00000025708
-    # 8854     TYMP ENSG00000284194
-    # 12789     GRN ENSG00000030582
-    # 24615     CFP ENSG00000126759
-    # 26757    PSAP ENSG00000197746
-    # 26758    PSAP ENSG00000137409
-    # 26759    PSAP ENSG00000122852
-    # 26760    PSAP ENSG00000185303
-    # 33471   TGFBI ENSG00000120708
-    # 49040   RCAN3 ENSG00000117602
-    # 53362 ZNF385A ENSG00000161642
-    # 69446  SCPEP1 ENSG00000121064
-    # 74047   TTYH3 ENSG00000136295
-    # 97213 FAM102A ENSG00000167106
-    backG <- gene_info_df[gene_info_df[,chosen_col] %in% backG, 'ENSEMBL']
-    sigGenes <- gene_info_df[gene_info_df[,chosen_col] %in% sigGenes, 'ENSEMBL']
-    geneIDs <- gene_info_df[,'ENSEMBL']
-} 
-print(head(backG))
-print('------------------------')
-print(head(sigGenes))
 
 # Set universe for hypergeometric test as expression matched background
 # and significant genes
@@ -194,60 +118,66 @@ inSelection = geneIDs %in% sigGenes
 # Munging
 alg <- factor(as.integer(inSelection[inUniverse]))
 names(alg) <- geneIDs[inUniverse]
-print(head(alg))
-
-# read the proper mapping of GO terms to Ensembl genes:
-go2genes <- readMappings(opt$go_mapping)
-
-print(head(go2genes))
 # prepare the data
-tgd <- new(
-    "topGOdata",
-    ontology = opt$ontology,
-    allGenes = alg,
-    nodeSize = opt$min_node_size,
-    annot = annFUN.GO2genes,
-    GO2genes=go2genes
+tryCatch({
+        tgd <- new(
+            "topGOdata",
+            ontology = opt$ontology,
+            allGenes = alg,
+            nodeSize = opt$min_node_size,
+            annot = annFUN.org,
+            mapping = opt$organism,
+            ID = opt$identifier_type
+        )
+        # Run tests
+        resultTopGO.elim <- runTest(tgd, algorithm = "elim", statistic = "Fisher")
+        resultTopGO.classic <- runTest(
+            tgd, algorithm = "classic", statistic = "Fisher"
+        )
+        # append results
+        topgo.res <- GenTable(
+            tgd,
+            Fisher.elim = resultTopGO.elim,
+            Fisher.classic = resultTopGO.classic,
+            orderBy = "Fisher.classic",
+            topNodes = opt$total_nodes
+        )
+    }, error=function(x){
+        message('Encountered an error when calculating GO enrichments. Often, this can be caused by specifying the incorrect gene identifier.')
+        quit(status=1)
+    }
 )
-# Run tests
-resultTopGO.elim <- runTest(tgd, algorithm = "elim", statistic = "Fisher")
-resultTopGO.classic <- runTest(
-    tgd, algorithm = "classic", statistic = "Fisher"
-)
-# append results
-topgo.res <- GenTable(
-    tgd,
-    Fisher.elim = resultTopGO.elim,
-    Fisher.classic = resultTopGO.classic,
-    orderBy = "Fisher.classic",
-    topNodes = opt$total_nodes
-)
-print(head(topgo.res))
-
 # To the result table we'd like to add the actual 
 # genes in each pathway. This way users can make
 # genesets in the WebMeV UI.
-go_terms = topgo.res[,'GO.ID']
-go2genes_subset = go2genes[go_terms] # gg
+mappings <- annFUN.org(opt$ontology, mapping = opt$organism, ID = opt$identifier_type)
 
-# if the original table did not have Ensembl IDs,
-# map to that original gene identifier system
-if (GENE_ID_TYPE != 'ensembl') {
 
-}
-go_genes_df = t(
+# `mappings` is a list that looks like:
+# $`GO:0000002`
+#  [1] "ENSG00000151729" "ENSG00000025708" "ENSG00000068305" "ENSG00000115204"
+#  [5] "ENSG00000198836" "ENSG00000196365" "ENSG00000117020" "ENSG00000275199"
+#  [9] "ENSG00000114120" "ENSG00000140451" "ENSG00000171612" "ENSG00000125871"
+
+# $`GO:0000003`
+# [1] "ENSG00000147437" "ENSG00000125787" "ENSG00000189409" "ENSG00000183814"
+
+# Turn that into a dataframe:
+mapping_df = t(
     as.data.frame(
-        lapply(go2genes[go_terms], function(x){
+        lapply(mappings, function(x){
             return(paste(x, collapse=','))
         }),
         check.names=F
     )
 )
-colnames(go_genes_df) = c('genelist')
+colnames(mapping_df) <- c('genelist')
+
+topgo.res = merge(topgo.res, mapping_df, by.x = 'GO.ID', by.y=0)
+
 
 # Write the results to file
 output_filename <- paste(
-    opt$output_file_prefix,
     "topGO",
     opt$ontology,
     "tsv",
@@ -258,5 +188,5 @@ write.table(
     output_filename,
     sep="\t",
     quote=F,
-    row.names = T
+    row.names = F
 )
