@@ -36,8 +36,13 @@ option_list <- list(
         help='The total number of nodes to display in results'
     ),
     make_option(
-        c('-g', '--organism'),
-        help='The organism database to use'
+        c('-g', '--gene_mapping'),
+        help='A file giving the various gene symbols and mapping between them'
+    )
+
+    make_option(
+        c('-j', '--go_mapping'),
+        help='A file giving the GO terms mapped to the associated genes.'
     )
 )
 
@@ -58,6 +63,14 @@ if (is.null(opt$organism)) {
 }
 if (is.null(opt$input_file)){
     message('Need to provide a ontology class with the -n/--ontology arg.')
+    quit(status=1)
+}
+if (is.null(opt$gene_mapping)){
+    message('Need to provide a file with gene symbol mapping via the -g/--gene_mapping arg.')
+    quit(status=1)
+}
+if (is.null(opt$go_mapping)){
+    message('Need to provide a file mapping GO terms to genes via the -j/--go_mapping arg.')
     quit(status=1)
 }
 
@@ -113,15 +126,19 @@ inSelection = geneIDs %in% sigGenes
 alg <- factor(as.integer(inSelection[inUniverse]))
 names(alg) <- geneIDs[inUniverse]
 
+# read the proper mapping of GO terms to Ensembl genes:
+go2genes <- readMappings()
+
+
 # prepare the data
 tgd <- new(
     "topGOdata",
     ontology = opt$ontology,
     allGenes = alg,
     nodeSize = opt$min_node_size,
-    annot = annFUN.org,
-    mapping = opt$organism,
-    ID = "symbol"
+    annot = annFUN.GO2gene,
+    whichOnto=opt$ontology,
+    GO2genes=go2genes
 )
 # Run tests
 resultTopGO.elim <- runTest(tgd, algorithm = "elim", statistic = "Fisher")

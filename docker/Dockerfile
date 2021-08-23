@@ -18,7 +18,7 @@ ENV PATH="/opt/software/miniconda/bin:${PATH}"
 # Install SCTK and dependencies:
 ADD spec_file.yaml /opt/software/
 RUN conda env create --name topgo_env --file=/opt/software/spec_file.yaml
-SHELL ["conda", "run", "-n", "topgo_env", "/bin/bash", "-c"]
+#SHELL ["conda", "run", "-n", "topgo_env", "/bin/bash", "-c"]
 
 # Add the sctk dimensional reduction script
 ADD topgo.R /opt/software
