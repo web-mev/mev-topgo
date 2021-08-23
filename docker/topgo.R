@@ -57,6 +57,7 @@ if (is.null(opt$output_file_prefix)) {
     message('Need to provide the prefix for the output file with the -o arg.')
     quit(status=1)
 }
+# Expects the organism to be: org.Hs.eg.db OR org.Mm.eg.db
 if (is.null(opt$organism)) {
     message('Need to provide the organism with the -g/--organism arg.')
     quit(status=1)
@@ -111,10 +112,6 @@ for (i in sig_idx){
 backG <- unique(backG)
 # Convert list of genes to expressions
 backG <- rownames(overallBasemean)[backG]
-
-# Choice of ontologies
-# This could be an input
-onts = c( "MF", "BP", "CC" )
 
 geneIDs = rownames(overallBasemean)
 # Set universe for hypergeometric test as expression matched background
