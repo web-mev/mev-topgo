@@ -5,5 +5,5 @@
   "ontology": "api.converters.basic_attributes.UnrestrictedStringConverter",
   "min_size": "api.converters.basic_attributes.IntegerConverter",
   "max_result_size": "api.converters.basic_attributes.IntegerConverter",
-  "pvalue_threshold": "api.converters.basic_attributes.StringConverter"
+  "pvalue_threshold": "api.converters.basic_attributes.UnrestrictedStringConverter"
 }

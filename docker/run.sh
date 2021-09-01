@@ -19,13 +19,13 @@ else
     exit 1;
 fi
 
-if [ $ONTOLOGY = "MF (Molecular Function)" ]
+if [ "$ONTOLOGY" = "MF (Molecular Function)" ]
 then
     ONT_SHORT="MF"
-elif [ $ONTOLOGY = "CC (Cellular Component)" ]
+elif [ "$ONTOLOGY" = "CC (Cellular Component)" ]
 then
     ONT_SHORT="CC"
-elif [ $ONTOLOGY = "BP (Biological Process)" ]
+elif [ "$ONTOLOGY" = "BP (Biological Process)" ]
 then
     ONT_SHORT="BP"
 else
@@ -33,7 +33,7 @@ else
     exit 1;
 fi
 
-Rscript topgo.R \
+Rscript /opt/software/topgo.R \
     -f $DGE_FILE \
     -n $ONT_SHORT \
     -p $PVALUE_THRESHOLD \
