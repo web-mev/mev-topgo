@@ -19,9 +19,23 @@ else
     exit 1;
 fi
 
+if [ $ONTOLOGY = "MF (Molecular Function)" ]
+then
+    ONT_SHORT="MF"
+elif [ $ONTOLOGY = "CC (Cellular Component)" ]
+then
+    ONT_SHORT="CC"
+elif [ $ONTOLOGY = "BP (Biological Process)" ]
+then
+    ONT_SHORT="BP"
+else
+    echo "Not a valid ontology choice." >&2
+    exit 1;
+fi
+
 Rscript topgo.R \
     -f $DGE_FILE \
-    -n $ONTOLOGY \
+    -n $ONT_SHORT \
     -p $PVALUE_THRESHOLD \
     -g $ORG_DB \
     -s $GENE_IDS \
