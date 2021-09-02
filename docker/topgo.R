@@ -4,6 +4,7 @@ suppressMessages(suppressWarnings(library(topGO)))
 suppressMessages(suppressWarnings(library(genefilter)))
 suppressMessages(suppressWarnings(library(optparse)))
 
+
 # args from command line:
 args<-commandArgs(TRUE)
 
@@ -64,6 +65,10 @@ if (! tolower(opt$identifier_type) %in% c("symbol", "ensembl", "entrez")) {
     message('For the gene identifier option, need to select one of: symbol, ensembl, or entrez.')
     quit(status=1)
 }
+
+# change the working directory to co-locate with the counts file:
+working_dir <- dirname(opt$input_file)
+setwd(working_dir)
 
 # ingest the DGE output as a data frame
 res <- read.table(
@@ -183,6 +188,7 @@ output_filename <- paste(
     "tsv",
     sep="."
 )
+output_filename <- paste(working_dir, output_filename, sep='/')
 write.table(
     topgo.res,
     output_filename,
@@ -190,3 +196,9 @@ write.table(
     quote=F,
     row.names = F
 )
+
+json_str = paste0(
+       '{"go_results":"', output_filename, '"}'
+)
+output_json <- paste(working_dir, 'outputs.json', sep='/')
+write(json_str, output_json)
