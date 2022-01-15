@@ -3,7 +3,7 @@ suppressMessages(suppressWarnings(library(org.Hs.eg.db)))
 suppressMessages(suppressWarnings(library(topGO)))
 suppressMessages(suppressWarnings(library(genefilter)))
 suppressMessages(suppressWarnings(library(optparse)))
-
+suppressMessages(suppressWarnings(library(jsonlite)))
 
 # args from command line:
 args<-commandArgs(TRUE)
@@ -46,7 +46,7 @@ opt <- parse_args(OptionParser(option_list=option_list))
 
 # Check that the necessary inputs were provided:
 if (is.null(opt$input_file)){
-    message('Need to provide a count matrix with the -f/--input_file arg.')
+    message('Need to provide a feature table (e.g. a table of differentially expressed genes) with the -f/--input_file arg.')
     quit(status=1)
 }
 
@@ -93,7 +93,6 @@ if(length(sigGenes) == 0){
     # TODO: make files
     quit(status=0)
 }
-
 
 # Get the mean values for all genes
 overallBasemean <- as.matrix(res[, "overall_mean", drop = F])
@@ -167,35 +166,79 @@ mappings <- annFUN.org(opt$ontology, mapping = opt$organism, ID = opt$identifier
 # $`GO:0000003`
 # [1] "ENSG00000147437" "ENSG00000125787" "ENSG00000189409" "ENSG00000183814"
 
-# Turn that into a dataframe:
-mapping_df = t(
-    as.data.frame(
-        lapply(mappings, function(x){
-            return(paste(x, collapse=','))
-        }),
-        check.names=F
-    )
-)
-colnames(mapping_df) <- c('genelist')
 
-topgo.res = merge(topgo.res, mapping_df, by.x = 'GO.ID', by.y=0)
+# `topgo.res` looks like:
+# > head(topgo.res)
+#        GO.ID                                 Term Annotated Significant
+# 1 GO:0032501     multicellular organismal process      5909        3554
+# 2 GO:0048731                   system development      3973        2440
+# 3 GO:0099537             trans-synaptic signaling       615         458
+# 4 GO:0007268       chemical synaptic transmission       608         453
+# 5 GO:0098916 anterograde trans-synaptic signaling       608         453
+# 6 GO:0099536                   synaptic signaling       633         468
+#   Expected Rank in Fisher.classic Fisher.elim Fisher.classic
+# 1  3219.62                      1     0.06047        < 1e-30
+# 2  2164.76                      2     0.05637        1.0e-25
+# 3   335.09                      3     0.28898        1.2e-25
+# 4   331.28                      4     2.1e-05        1.8e-25
+# 5   331.28                      5     1.00000        1.8e-25
+# 6   344.90                      6     0.32988        4.9e-25
 
+# Make the GO terms as the rownames
+rownames(topgo.res) <- topgo.res[,'GO.ID']
+
+# Make that dataframe into a list, which is more amenable to the json-format data we are exporting:
+topgo.res.list = asplit(topgo.res, 1)
+
+# a function to append the gene list to the results list
+addGeneList = function(term_data){
+    go_term = term_data[['GO.ID']]
+    genelist = mappings[[go_term]]
+    if(length(genelist) == 1){
+        # add a NA (which gets translated to `null` by toJSON)
+        # so that the "unboxing" doesn't leave some genelists as
+        # strings and others as lists of strings
+        genelist = c(genelist, NA)
+    }
+    if(is.null(genelist)){
+        genelist = vector() # this way an empty array is encoded as "[]" in toJSON function
+    }
+    term_data = append(term_data, list(genelist=genelist))
+
+    # remove the GO.ID since this list element is already uniquely 
+    # addressed by the GO ID
+    term_data = within(term_data, rm(GO.ID))
+
+    # Many of the terms are cast as strings-- change to what we expect
+    term_data['Annotated'] = as.integer(term_data['Annotated'])
+    term_data['Significant'] = as.integer(term_data['Significant'])
+    term_data['Rank in Fisher.classic'] = as.integer(term_data['Rank in Fisher.classic'])
+    term_data['Expected'] = as.numeric(term_data['Expected'])
+    term_data['Fisher.elim'] = as.numeric(term_data['Fisher.elim'])
+    # Note that p-values less than 1e-30 are given a p-value of "< 1e-30"
+    # in the table. This causes parsing issues, so we cast to a hard zero here
+    # The source code GenTable function above suggests we could pass a 'formatting function'
+    # so that we can customize the printing, but this is a reasonable workaround. Directly
+    # adding the `format.FUN` keyword argument caused errors
+    if (trimws(term_data['Fisher.classic']) == '< 1e-30'){
+        term_data['Fisher.classic'] = 0
+    } else {
+        term_data['Fisher.classic'] = as.numeric(term_data['Fisher.classic'])
+    }
+    return(term_data)
+}
+final.topgo.res <- lapply(topgo.res.list, addGeneList)
 
 # Write the results to file
 output_filename <- paste(
     "topGO",
     opt$ontology,
-    "tsv",
+    "json",
     sep="."
 )
-output_filename <- paste(working_dir, output_filename, sep='/')
-write.table(
-    topgo.res,
-    output_filename,
-    sep="\t",
-    quote=F,
-    row.names = F
-)
+#issues:
+#GO:0000904 has only a single gene-what happens in json rep?
+write(toJSON(final.topgo.res, auto_unbox=T), output_filename)
 
 json_str = paste0(
        '{"go_results":"', output_filename, '"}'

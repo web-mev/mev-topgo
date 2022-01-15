@@ -71,7 +71,7 @@
         "go_results": {
             "spec": {
                 "attribute_type": "DataResource", 
-                "resource_type": "FT",
+                "resource_type": "JSON",
                 "many": false
             }
         }
