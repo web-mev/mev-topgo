@@ -78,6 +78,18 @@ res <- read.table(
     header=T
 )
 
+# check that we have the proper columns:
+if(!'padj' %in% names(res))
+{
+    message('The input file containing your significant genes (e.g. from a differential expression analysis) did not have a column named "padj", which we require for filtering.')
+    quit(status=1)
+}
+if(!'overall_mean' %in% names(res))
+{
+    message('The input file containing your significant genes (e.g. from a differential expression analysis) did not have a column named "overall_mean", which we require. We use this column to create an appropriate "background" distribution of gene expressions for the topGO analysis.')
+    quit(status=1)
+}
+
 # Get a list of the significant genes
 sigGenes <- rownames(
     subset(
@@ -190,16 +202,28 @@ rownames(topgo.res) <- topgo.res[,'GO.ID']
 # Make that dataframe into a list, which is more amenable to the json-format data we are exporting:
 topgo.res.list = asplit(topgo.res, 1)
 
-# a function to append the gene list to the results list
+# a function to append the gene list to the results list.
+# The input arg is already a list. The "keys" are the GO IDs, but
+# each item of the list has that same GO ID addressed by "GO.ID"
 addGeneList = function(term_data){
     go_term = term_data[['GO.ID']]
     genelist = mappings[[go_term]]
     if(length(genelist) == 1){
-        # add a NA (which gets translated to `null` by toJSON)
+        # add a NA (which gets translated to `null` by toJSON below)
         # so that the "unboxing" doesn't leave some genelists as
-        # strings and others as lists of strings
+        # strings and others as lists of strings. By adding the null, GO
+        # terms that correspond to single genes will look like:
+        #{
+        #     'GO:XXXXXX': {
+        #         ...
+        #         genelist: ['geneX', null]
+        #     },
+        #       ...
+        # }
         genelist = c(genelist, NA)
     }
+    # if the mappings list doesn't have any genes corresponding to a particular GO term,
+    # then genelist is null
     if(is.null(genelist)){
         genelist = vector() # this way an empty array is encoded as "[]" in toJSON function
     }
@@ -227,6 +251,8 @@ addGeneList = function(term_data){
     }
     return(term_data)
 }
+
+# apply that function above to the list so we have all the info- p-vals,  
 final.topgo.res <- lapply(topgo.res.list, addGeneList)
 
 # Write the results to file
@@ -236,8 +262,7 @@ output_filename <- paste(
     "json",
     sep="."
 )
-#issues:
-#GO:0000904 has only a single gene-what happens in json rep?
+
 write(toJSON(final.topgo.res, auto_unbox=T), output_filename)
 
 json_str = paste0(
