@@ -262,11 +262,12 @@ output_filename <- paste(
     "json",
     sep="."
 )
+output_filepath <- paste(working_dir, output_filename, sep='/')
 
-write(toJSON(final.topgo.res, auto_unbox=T), output_filename)
+write(toJSON(final.topgo.res, auto_unbox=T), output_filepath)
 
 json_str = paste0(
-       '{"go_results":"', output_filename, '"}'
+       '{"go_results":"', output_filepath, '"}'
 )
 output_json <- paste(working_dir, 'outputs.json', sep='/')
 write(json_str, output_json)
