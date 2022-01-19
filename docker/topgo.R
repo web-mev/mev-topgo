@@ -244,6 +244,7 @@ q = apply(topgo.res, 1, function(r){
         term=r[['Term']],
         annotated=annotated,
         significant = significant,
+        expected = expected,
         fisher_rank = fisher.rank,
         classic_pval = fisher.classic,
         elim_pval = fisher.elim,
