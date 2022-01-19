@@ -197,16 +197,10 @@ mappings <- annFUN.org(opt$ontology, mapping = opt$organism, ID = opt$identifier
 # 6   344.90                      6     0.32988        4.9e-25
 
 # Make the GO terms as the rownames
-rownames(topgo.res) <- topgo.res[,'GO.ID']
+#rownames(topgo.res) <- topgo.res[,'GO.ID']
 
-# Make that dataframe into a list, which is more amenable to the json-format data we are exporting:
-topgo.res.list = asplit(topgo.res, 1)
-
-# a function to append the gene list to the results list.
-# The input arg is already a list. The "keys" are the GO IDs, but
-# each item of the list has that same GO ID addressed by "GO.ID"
-addGeneList = function(term_data){
-    go_term = term_data[['GO.ID']]
+q = apply(topgo.res, 1, function(r){
+    go_term = r[['GO.ID']]
     genelist = mappings[[go_term]]
     if(length(genelist) == 1){
         # add a NA (which gets translated to `null` by toJSON below)
@@ -227,33 +221,39 @@ addGeneList = function(term_data){
     if(is.null(genelist)){
         genelist = vector() # this way an empty array is encoded as "[]" in toJSON function
     }
-    term_data = append(term_data, list(genelist=genelist))
-
-    # remove the GO.ID since this list element is already uniquely 
-    # addressed by the GO ID
-    term_data = within(term_data, rm(GO.ID))
 
     # Many of the terms are cast as strings-- change to what we expect
-    term_data['Annotated'] = as.integer(term_data['Annotated'])
-    term_data['Significant'] = as.integer(term_data['Significant'])
-    term_data['Rank in Fisher.classic'] = as.integer(term_data['Rank in Fisher.classic'])
-    term_data['Expected'] = as.numeric(term_data['Expected'])
-    term_data['Fisher.elim'] = as.numeric(term_data['Fisher.elim'])
+    annotated = as.integer(r[['Annotated']])
+    significant = as.integer(r[['Significant']])
+    fisher.rank = as.integer(r[['Rank in Fisher.classic']])
+    expected = as.numeric(r[['Expected']])
+    fisher.elim = as.numeric(r[['Fisher.elim']])
     # Note that p-values less than 1e-30 are given a p-value of "< 1e-30"
     # in the table. This causes parsing issues, so we cast to a hard zero here
     # The source code GenTable function above suggests we could pass a 'formatting function'
     # so that we can customize the printing, but this is a reasonable workaround. Directly
     # adding the `format.FUN` keyword argument caused errors
-    if (trimws(term_data['Fisher.classic']) == '< 1e-30'){
-        term_data['Fisher.classic'] = 0
+    if (trimws(r[['Fisher.classic']]) == '< 1e-30'){
+        fisher.classic = 0
     } else {
-        term_data['Fisher.classic'] = as.numeric(term_data['Fisher.classic'])
+        fisher.classic = as.numeric(r[['Fisher.classic']])
     }
-    return(term_data)
-}
 
-# apply that function above to the list so we have all the info- p-vals,  
-final.topgo.res <- lapply(topgo.res.list, addGeneList)
+    list(
+        go_id=r[['GO.ID']],
+        term=r[['Term']],
+        annotated=annotated,
+        significant = significant,
+        fisher_rank = fisher.rank,
+        classic_pval = fisher.classic,
+        elim_pval = fisher.elim,
+        genelist=genelist
+    )
+})
+
+# this drops the names so that the json export does not have the GO terms as 'keys'.
+# This makes it export as a list of objects
+names(q) <- c()
 
 # Write the results to file
 output_filename <- paste(
@@ -263,8 +263,7 @@ output_filename <- paste(
     sep="."
 )
 output_filepath <- paste(working_dir, output_filename, sep='/')
-
-write(toJSON(final.topgo.res, auto_unbox=T), output_filepath)
+write(toJSON(q, auto_unbox=T), output_filepath)
 
 json_str = paste0(
        '{"go_results":"', output_filepath, '"}'
