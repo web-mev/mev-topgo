@@ -8,7 +8,7 @@
             "required": true, 
             "spec": {
                 "attribute_type": "DataResource", 
-                "resource_types": ["FT"], 
+                "resource_type": "FT", 
                 "many": false
             }
         }, 
