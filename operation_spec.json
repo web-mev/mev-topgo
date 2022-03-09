@@ -8,7 +8,7 @@
             "required": true, 
             "spec": {
                 "attribute_type": "DataResource", 
-                "resource_types": ["FT"], 
+                "resource_type": "FT", 
                 "many": false
             }
         }, 
@@ -44,7 +44,9 @@
             "name": "P-value threshold:", 
             "required": false, 
             "spec": {
-                "attribute_type": "PositiveFloat",
+                "attribute_type": "BoundedFloat",
+                "min": 0.0,
+                "max": 1.0,
                 "default": 0.05
             }
         },
@@ -69,6 +71,7 @@
     }, 
     "outputs": {
         "go_results": {
+            "required": true,
             "spec": {
                 "attribute_type": "DataResource", 
                 "resource_type": "JSON",
