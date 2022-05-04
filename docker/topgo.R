@@ -191,7 +191,7 @@ tryCatch({
             topNodes = opt$total_nodes
         )
     }, error=function(x){
-        message('Encountered an error when calculating GO enrichments. Often, this can be caused by specifying the incorrect gene identifier.')
+        message('Encountered an error when calculating GO enrichments. Often, this can be caused by specifying the incorrect gene identifier. This can also be caused by choosing a threshold p-value that is too large and hence includes too many genes in the analysis.')
         quit(status=1)
     }
 )
