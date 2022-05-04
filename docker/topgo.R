@@ -5,6 +5,25 @@ suppressMessages(suppressWarnings(library(genefilter)))
 suppressMessages(suppressWarnings(library(optparse)))
 suppressMessages(suppressWarnings(library(jsonlite)))
 
+# a function to handle writing of files. Used in a couple of places
+write_results <- function(q, opt, working_dir) {
+    # Write the results to file
+    output_filename <- paste(
+        "topGO",
+        opt$ontology,
+        "json",
+        sep="."
+    )
+    output_filepath <- paste(working_dir, output_filename, sep='/')
+    write(toJSON(q, auto_unbox=T), output_filepath)
+
+    json_str = paste0(
+        '{"go_results":"', output_filepath, '"}'
+    )
+    output_json <- paste(working_dir, 'outputs.json', sep='/')
+    write(json_str, output_json)
+} 
+
 # args from command line:
 args<-commandArgs(TRUE)
 
@@ -101,8 +120,21 @@ if(length(sigGenes) == 0){
     # Nothing to do since there were no significant genes at this threshold
     message('There were zero significant genes for the prescribed threshold of pvalue < ', opt$pvalue)
 
-    # make dummy files and exit with zero since there isn't an error with the analysis
-    # TODO: make files
+    # make dummy data and exit with zero since there isn't an error with the analysis
+    l=list(
+        go_id='-',
+        term='-',
+        annotated=0,
+        significant = 0,
+        expected = 0,
+        fisher_rank = 0,
+        classic_pval = 0,
+        elim_pval = 0,
+        genelist=vector()
+    )
+    # needs to be a list in a list to export to the expected format.
+    l = list(l)
+    write_results(l, opt, working_dir)
     quit(status=0)
 }
 
@@ -256,18 +288,4 @@ q = apply(topgo.res, 1, function(r){
 # This makes it export as a list of objects
 names(q) <- c()
 
-# Write the results to file
-output_filename <- paste(
-    "topGO",
-    opt$ontology,
-    "json",
-    sep="."
-)
-output_filepath <- paste(working_dir, output_filename, sep='/')
-write(toJSON(q, auto_unbox=T), output_filepath)
-
-json_str = paste0(
-       '{"go_results":"', output_filepath, '"}'
-)
-output_json <- paste(working_dir, 'outputs.json', sep='/')
-write(json_str, output_json)
+write_results(q, opt, working_dir)
