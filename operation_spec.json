@@ -6,6 +6,7 @@
             "description": "A table of diffential expression results. Must have \"overall_mean\" and \"padj\" columns for the process to understand how to read the table. We need \"overall_mean\" column to generate an empircally matched background distribution and the \"padj\" column to classify a gene as differentially expressed or not.", 
             "name": "Differential expression results:", 
             "required": true, 
+            "converter": "api.converters.data_resource.LocalDockerSingleDataResourceConverter",
             "spec": {
                 "attribute_type": "DataResource", 
                 "resource_type": "FT", 
@@ -16,6 +17,7 @@
             "description": "The organism/genome for your data. If you do not see your organism, please request it!", 
             "name": "Genome/organism:", 
             "required": true, 
+            "converter": "api.converters.basic_attributes.StringConverter",
             "spec": {
                 "attribute_type": "OptionString",
                 "options": ["Human", "Mouse"]
@@ -25,6 +27,7 @@
             "description": "The gene identifier used in the input table of differential expression results.", 
             "name": "Gene identifier:", 
             "required": true, 
+            "converter": "api.converters.basic_attributes.StringConverter",
             "spec": {
                 "attribute_type": "OptionString",
                 "options": ["Symbol", "Ensembl", "Entrez"]
@@ -34,6 +37,7 @@
             "description": "The ontology class to analyze. This analysis can be re-run multiples times to get results for each.", 
             "name": "Ontology choice:", 
             "required": true, 
+            "converter": "api.converters.basic_attributes.StringConverter",
             "spec": {
                 "attribute_type": "OptionString",
                 "options": ["MF (Molecular Function)", "CC (Cellular Component)", "BP (Biological Process)"]            
@@ -43,6 +47,7 @@
             "description": "The significance value (p-value, adjusted p-value, FDR) threshold which determines whether a gene is considered differentially expressed or not.", 
             "name": "P-value threshold:", 
             "required": false, 
+            "converter": "api.converters.basic_attributes.FloatConverter",
             "spec": {
                 "attribute_type": "BoundedFloat",
                 "min": 0.0,
@@ -54,6 +59,7 @@
             "description": "The minimum number of genes required to be assigned to a GO term. GO terms associated with fewer genes will be removed from analysis.", 
             "name": "Minimum GO term size:", 
             "required": false, 
+            "converter": "api.converters.basic_attributes.IntegerConverter",
             "spec": {
                 "attribute_type": "PositiveInteger",
                 "default": 10
@@ -63,6 +69,7 @@
             "description": "The maximum number of GO terms to report in the analysis output.", 
             "name": "Number of GO term results:", 
             "required": false, 
+            "converter": "api.converters.basic_attributes.IntegerConverter",
             "spec": {
                 "attribute_type": "PositiveInteger",
                 "default": 500
@@ -72,6 +79,7 @@
     "outputs": {
         "go_results": {
             "required": true,
+            "converter": "api.converters.data_resource.LocalDockerSingleDataResourceConverter",
             "spec": {
                 "attribute_type": "DataResource", 
                 "resource_type": "JSON",

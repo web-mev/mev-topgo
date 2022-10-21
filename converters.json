@@ -1,9 +1,0 @@
-{
-  "feature_table":"api.converters.data_resource.LocalDockerSingleDataResourceConverter",
-  "organism": "api.converters.basic_attributes.StringConverter",
-  "gene_identifier": "api.converters.basic_attributes.StringConverter",
-  "ontology": "api.converters.basic_attributes.UnrestrictedStringConverter",
-  "min_size": "api.converters.basic_attributes.IntegerConverter",
-  "max_result_size": "api.converters.basic_attributes.IntegerConverter",
-  "pvalue_threshold": "api.converters.basic_attributes.UnrestrictedStringConverter"
-}
