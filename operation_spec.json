@@ -37,7 +37,7 @@
             "description": "The ontology class to analyze. This analysis can be re-run multiples times to get results for each.", 
             "name": "Ontology choice:", 
             "required": true, 
-            "converter": "api.converters.basic_attributes.StringConverter",
+            "converter": "api.converters.basic_attributes.UnrestrictedStringConverter",
             "spec": {
                 "attribute_type": "OptionString",
                 "options": ["MF (Molecular Function)", "CC (Cellular Component)", "BP (Biological Process)"]            
