@@ -80,8 +80,8 @@ if (! opt$ontology %in% c("MF", "BP", "CC")) {
     quit(status=1)
 }
 
-if (! tolower(opt$identifier_type) %in% c("symbol", "ensembl", "entrez")) {
-    message('For the gene identifier option, need to select one of: symbol, ensembl, or entrez.')
+if (! tolower(opt$identifier_type) %in% c("symbol", "ensembl", "refseq")) {
+    message('For the gene identifier option, need to select one of: symbol, ensembl, or refseq.')
     quit(status=1)
 }
 

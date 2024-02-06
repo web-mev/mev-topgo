@@ -19,20 +19,14 @@ Either:
 - build the Docker image using the contents of the `docker/` folder (e.g. `docker build -t myuser/topgo:v1 .`) 
 - pull the docker image from the GitHub container repository (see https://github.com/web-mev/mev-topgo/pkgs/container/mev-topgo)
 
-To run, enter the container in an interactive shell:
+To run, change to the directory where your differential expression results are located. Then:
 ```
-docker run -it -v$PWD:/work <IMAGE>
-```
-(here, we mount the current directory to `/work` inside the container)
-
-Then, run the script:
-```
-Rscript /opt/software/topgo.R \
-    -f <path to differential expression results> \
+docker run -it -v $PWD:/work Rscript /usr/local/bin/topgo.R \
+    -f /work/<differential expression results> \
     -n <The GO terms to test. One of MF,CC,BP> \
     -p <threshold for removing genes with values of padj greater than this value> \
     -g <organism. Either "org.Hs.eg.db" or "org.Mm.eg.db"> \
-    -s <gene identifier type. One of symbol, ensembl, or entrez> \
+    -s <gene identifier type. One of symbol, ensembl, or refseq> \
     -m <minimum size for GO term>\
     -t <Max number of results to output>
 ```
@@ -45,4 +39,4 @@ Some notes:
 - To look up the gene symbol and potentially map to the database identifiers, we need to know which annotation system you are using:
     - "symbol" refers to the "common" gene name (e.g. TP53, KRAS, etc.)
     - "ensmebl" refers to Ensembl-based identifiers, which start with ENSG for human and ENSMUSG for mouse
-    - "entrez" are simply integers and is relatively uncommon.
+    - "RefSeq" are identifiers that start with "NM", "NP", "XM", etc.

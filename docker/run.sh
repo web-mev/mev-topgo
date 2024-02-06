@@ -33,7 +33,7 @@ else
     exit 1;
 fi
 
-Rscript /opt/software/topgo.R \
+Rscript /usr/local/bin/topgo.R \
     -f $DGE_FILE \
     -n $ONT_SHORT \
     -p $PVALUE_THRESHOLD \

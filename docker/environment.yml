@@ -1,0 +1,13 @@
+name: base
+channels:
+  - conda-forge
+  - bioconda
+  - defaults
+dependencies:
+  - bioconductor-org.hs.eg.db=3.18.0
+  - bioconductor-org.mm.eg.db=3.18.0
+  - bioconductor-genefilter
+  - bioconductor-topgo
+  - r-base=4.3.2
+  - r-optparse=1.7.4
+  - r-rjson=0.2.21 

@@ -30,7 +30,7 @@
             "converter": "api.converters.basic_attributes.StringConverter",
             "spec": {
                 "attribute_type": "OptionString",
-                "options": ["Symbol", "Ensembl", "Entrez"]
+                "options": ["Symbol", "Ensembl", "Refseq"]
             }
         },
         "ontology": {
