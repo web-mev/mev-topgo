@@ -6,7 +6,7 @@
             "description": "A table of diffential expression results. Must have \"overall_mean\" and \"padj\" columns for the process to understand how to read the table. We need \"overall_mean\" column to generate an empircally matched background distribution and the \"padj\" column to classify a gene as differentially expressed or not.", 
             "name": "Differential expression results:", 
             "required": true, 
-            "converter": "api.converters.data_resource.LocalDockerSingleDataResourceConverter",
+            "converter": "api.converters.data_resource.ECSSingleDataResourceConverter",
             "spec": {
                 "attribute_type": "DataResource", 
                 "resource_type": "FT", 
@@ -79,7 +79,7 @@
     "outputs": {
         "go_results": {
             "required": true,
-            "converter": "api.converters.data_resource.LocalDockerSingleDataResourceConverter",
+            "converter": "api.converters.data_resource.ECSSingleDataResourceConverter",
             "spec": {
                 "attribute_type": "DataResource", 
                 "resource_type": "JSON",
@@ -87,6 +87,6 @@
             }
         }
     }, 
-    "mode": "local_docker",
+    "mode": "ecs",
     "workspace_operation": true
 }
